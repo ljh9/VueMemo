@@ -4,28 +4,48 @@
             <button class="btn btn-primary" @click="add()">추가</button>
         </div>
         <ul>
-            <li v-for="(d, idx) in state.data" :key="idx">{{d}}</li>
+            <li v-for="d in state.data" :key="d.id" @click="edit(d.id)">{{d.content}}</li>
         </ul>
     </div>
 </template>
 <script>
 import {reactive} from "vue"
-import {axios} from "axios"
+import axios from "axios"
 
 export default {
     setup() {
         
         const state = reactive({
-            data :["메모 1 내용", "메모 2 내용", "메모 3 내용", "메모 4 내용", "메모 5 내용"],
-        });
-        const add=()=>{
-            state.data.push("추가 내용");
-        };
-        axios.get("/api/memos").then((res) =>{
-            console.log(res.data);
+            data :[],
         });
 
-        return {state, add};
+
+        const add=()=>{
+            const content = prompt("입력하라");
+            if(!content) {
+                alert('입력해');
+                return add();
+            }
+            // state.data.push("추가 내용");
+            axios.post("/api/memos", {content}).then((res)=>{
+                state.data = res.data;
+            })
+        };
+
+        const edit = (id) =>{
+            const content = prompt("입력해라", state.data.find(d=>d.id == id).content);
+            console.log(content);
+            axios.put("/api/memos/" + id, {content}).then((res) => {
+                state.data = res.data;
+            })
+        }
+
+
+        axios.get("/api/memos").then((res) =>{
+            state.data = res.data;
+        });
+
+        return {state, add, edit};
     },
 }
 </script>
